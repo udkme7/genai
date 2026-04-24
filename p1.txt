@@ -1,0 +1,25 @@
+# Install once (skip if already installed)
+!pip install transformers torch --quiet
+
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+# Load model
+name = "EleutherAI/gpt-neo-125M"
+tok = AutoTokenizer.from_pretrained(name)
+model = AutoModelForCausalLM.from_pretrained(name)
+
+tok.pad_token = tok.eos_token
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model.to(device)
+
+# Prompt
+prompt = "Once upon a time there was a beautiful queen"
+
+# Generate text
+inp = tok(prompt, return_tensors="pt").to(device)
+out = model.generate(**inp, max_length=100, temperature=0.8,
+                     top_k=50, top_p=0.9, do_sample=True,
+                     pad_token_id=tok.pad_token_id)
+
+print(tok.decode(out[0], skip_special_tokens=True))

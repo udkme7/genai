@@ -1,0 +1,23 @@
+!pip install diffusers transformers accelerate safetensors --quiet
+
+import torch
+from diffusers import StableDiffusionPipeline
+from IPython.display import display
+
+# Load model
+model = "sd2-community/stable-diffusion-2-1"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16).to(device)
+
+# Input
+prompt = input("Enter prompt: ")
+neg = input("Negative prompt (optional): ")
+
+# Generate image
+img = pipe(prompt,
+           negative_prompt=neg if neg else None,
+           num_inference_steps=30,
+           guidance_scale=7.5).images[0]
+
+img.save("output.png")
+display(img)

@@ -1,0 +1,18 @@
+!pip install google-generativeai PyPDF2 --quiet
+
+import google.generativeai as genai, PyPDF2
+
+genai.configure(api_key=input("API Key: "))
+
+# Read PDF
+text = ""
+with open(input("PDF file: "), "rb") as f:
+    for p in PyPDF2.PdfReader(f).pages:
+        text += p.extract_text() or ""
+
+# Prompt + Model
+prompt = f"Evaluate this resume for {input('Role: ')}. Give score, strengths, gaps, improvements.\n{text[:3000]}"
+
+res = genai.GenerativeModel("gemma-3-1b-it").generate_content(prompt)
+
+print(res.text)

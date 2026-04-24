@@ -1,0 +1,39 @@
+!pip install sentence-transformers faiss-cpu transformers python-docx --quiet
+
+from sentence_transformers import SentenceTransformer
+from transformers import pipeline
+from docx import Document
+import faiss, numpy as np
+
+# Read file
+text = " ".join(p.text for p in Document(input("Docx file: ")).paragraphs)
+
+# Chunking
+chunks = [text[i:i+400] for i in range(0, len(text), 400)]
+
+# Embeddings + index
+embed = SentenceTransformer("all-mpnet-base-v2")
+vecs = embed.encode(chunks)
+index = faiss.IndexFlatL2(vecs.shape[1])
+index.add(np.array(vecs))
+
+# Model
+llm = pipeline("text-generation", model="google/flan-t5-base")
+
+print("RAG Chatbot Ready (type exit)")
+
+while True:
+    q = input("Ask: ")
+    if q.lower() == "exit":
+        break
+
+    qv = embed.encode([q])
+    _, idx = index.search(qv, 3)
+
+    context = " ".join([chunks[i] for i in idx[0]])
+
+    prompt = f"Answer from context only:\n{context}\nQ:{q}"
+
+    out = llm(prompt, max_new_tokens=120)
+
+    print("Answer:\n", out[0]["generated_text"], "\n")
