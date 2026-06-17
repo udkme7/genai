@@ -13,6 +13,6 @@ with open(input("PDF file: "), "rb") as f:
 # Prompt + Model
 prompt = f"Evaluate this resume for {input('Role: ')}. Give score, strengths, gaps, improvements.\n{text[:3000]}"
 
-res = genai.GenerativeModel("gemma-3-1b-it").generate_content(prompt)
+res = genai.GenerativeModel("gemini-3.1-flash-lite").generate_content(prompt)
 
 print(res.text)
